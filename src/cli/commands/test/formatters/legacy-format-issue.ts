@@ -13,6 +13,7 @@ import {
   GroupedVuln,
   AnnotatedIssue,
   DockerIssue,
+  SEVERITY,
 } from '../../../../lib/snyk-test/legacy';
 import { formatLegalInstructions } from './legal-license-instructions';
 import { getReachabilityText } from './format-reachability';
@@ -40,6 +41,7 @@ export function formatIssues(
       vuln.metadata.type,
       vuln.metadata.name,
       false,
+      vuln.originalSeverity,
     ),
     introducedThrough: '  Introduced through: ' + uniquePackages,
     description: '  Description: ' + vuln.title,
@@ -76,7 +78,13 @@ export function formatIssues(
   );
 }
 
-function createSeverityBasedIssueHeading(severity, type, packageName, isNew) {
+function createSeverityBasedIssueHeading(
+  severity: SEVERITY,
+  type: string,
+  packageName: string,
+  isNew: boolean,
+  originalSeverity?: SEVERITY,
+) {
   // Example: ✗ Medium severity vulnerability found in xmldom
   const vulnTypeText = type === 'license' ? 'issue' : 'vulnerability';
   const severitiesColourMapping = {
@@ -96,11 +104,17 @@ function createSeverityBasedIssueHeading(severity, type, packageName, isNew) {
       },
     },
   };
+
+  let originalSeverityStr = '';
+  if (originalSeverity && originalSeverity !== severity) {
+    originalSeverityStr = ` (originally ${titleCaseText(originalSeverity)})`;
+  }
+
   return (
     severitiesColourMapping[severity].colorFunc(
       '✗ ' +
         titleCaseText(severity) +
-        ' severity ' +
+        ` severity${originalSeverityStr} ` +
         vulnTypeText +
         ' found in ' +
         chalk.underline(packageName),

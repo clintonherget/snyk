@@ -50,6 +50,7 @@ export interface GroupedVuln {
   title: string;
   note: string | false;
   severity: SEVERITY;
+  originalSeverity?: SEVERITY;
   isNew: boolean;
   name: string;
   version: string;
