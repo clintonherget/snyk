@@ -2,7 +2,7 @@ import * as path from 'path';
 import { Files, tryGetSpec } from './try-get-spec';
 import { Spec } from './index';
 
-const pattern = /^Gemfile(\.lock)*$/;
+const pattern = /.*emfile(\.lock)*$/;
 
 export function canHandle(file: string): boolean {
   return !!file && pattern.test(path.basename(file));
@@ -15,7 +15,7 @@ export async function gatherSpecs(root: string, target: string): Promise<Spec> {
 
   const gemfileLock = await tryGetSpec(
     root,
-    path.join(targetDir, 'Gemfile.lock'),
+    targetName,
   );
 
   if (gemfileLock) {
