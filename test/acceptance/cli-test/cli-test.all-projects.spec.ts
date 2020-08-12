@@ -968,5 +968,88 @@ export const AllProjectsTests: AcceptanceTests = {
         'Go dep package manager',
       );
     },
+    '`test mono-repo-go --all-projects --detection-depth=2 --json with errors`': (
+      params,
+      utils,
+    ) => async (t) => {
+      utils.chdirWorkspaces();
+      const mockPlugin = {
+        async inspect() {
+          return {
+            package: {},
+            plugin: {
+              name: 'mock',
+            },
+          };
+        },
+      };
+      const loadPlugin = sinon.stub(params.plugins, 'loadPlugin');
+      t.teardown(loadPlugin.restore);
+      // prevent plugin inspect from actually running (requires go to be installed)
+      loadPlugin.withArgs('golangdep').returns(mockPlugin);
+      loadPlugin.withArgs('gomodules').returns(mockPlugin);
+      loadPlugin.withArgs('govendor').throws(new Error('Failed to scan'));
+      loadPlugin.callThrough(); // don't mock npm plugin
+
+      const jsonRes = await params.cli.test('mono-repo-go', {
+        allProjects: true,
+        detectionDepth: 3,
+        json: true,
+      });
+      t.ok(loadPlugin.withArgs('golangdep').calledOnce, 'calls go dep plugin');
+      t.ok(loadPlugin.withArgs('gomodules').calledOnce, 'calls go mod plugin');
+      t.ok(loadPlugin.withArgs('npm').calledOnce, 'calls npm plugin');
+      t.ok(
+        loadPlugin.withArgs('govendor').calledOnce,
+        'calls go vendor plugin',
+      );
+      // read data from console.log
+      let stdoutMessages = '';
+      let stderrMessages = '';
+      const stubConsoleLog = (msg: string) => (stdoutMessages += msg);
+      const origConsoleLog = console.log;
+      console.log = stubConsoleLog;
+
+      const stubConsoleWarn = (msg: string) => (stderrMessages += msg);
+      const origConsoleWarn = console.warn;
+      console.log = stubConsoleWarn;
+      t.match(stdoutMessages, '', 'no stdout with --json');
+      t.match(stderrMessages, '', 'no stderr with --json');
+
+      // restore original console
+      console.log = origConsoleLog;
+      console.warn = origConsoleWarn;
+      let res;
+      try {
+        res = JSON.parse(jsonRes.getJsonResult());
+      } catch (e) {
+        t.fail('Should have been valid json', e);
+      }
+
+      // TODO: should be 4 once we propagate failures all
+      // the way
+      t.equals(res.length, 3, 'Tested 3/4 projects');
+
+      t.deepEquals(
+        res.map((r) => r.displayTargetFile).sort(),
+        [
+          `hello-dep${path.sep}Gopkg.lock`,
+          `hello-mod${path.sep}go.mod`,
+          `hello-node${path.sep}package-lock.json`,
+          // TODO: propagate failures
+          // `hello-vendor${path.sep}vendor${path.sep}vendor.json`
+        ].sort(),
+      );
+      t.deepEquals(
+        res.map((r) => r.packageManager).sort(),
+        [
+          'golangdep',
+          'gomodules',
+          'npm',
+          // TODO: propagate failures
+          // 'govendor'
+        ].sort(),
+      );
+    },
   },
 };
