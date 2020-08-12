@@ -202,6 +202,7 @@ export function args(rawArgv: string[]): Args {
     'reachable-vulns-timeout',
     'integration-name',
     'integration-version',
+    'deps-source-dir',
   ];
   for (const dashedArg of argumentsToTransform) {
     if (argv[dashedArg]) {

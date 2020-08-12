@@ -23,6 +23,7 @@ import {
   OptionMissingErrorError,
   UnsupportedOptionCombinationError,
   ExcludeFlagBadInputError,
+  InvalidArg,
 } from '../lib/errors';
 import stripAnsi from 'strip-ansi';
 import { ExcludeFlagInvalidInputError } from '../lib/errors/exclude-flag-invalid-input';
@@ -284,6 +285,16 @@ async function main() {
     }
 
     checkPaths(args);
+
+    const depsSourceDirValue = args?.options?.depsSourceDir;
+    if (depsSourceDirValue) {
+      if (typeof depsSourceDirValue !== 'string' || depsSourceDirValue === '') {
+        throw new InvalidArg(
+          '--deps-source-dir',
+          'Please indicate path(s) to C/C++ source files. When there are multiple separate them using a comma, for example --deps-source-dir="path/to/my/sources,another/path"',
+        );
+      }
+    }
 
     res = await runCommand(args);
   } catch (error) {

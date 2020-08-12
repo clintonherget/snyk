@@ -16,6 +16,25 @@ test('test command line arguments', (t) => {
   t.end();
 });
 
+test('test command line test --deps-source-dir with multiple paths', (t) => {
+  const cliArgs = [
+    'node',
+    'cli',
+    'test',
+    '--deps-source-dir=path/one,path/two',
+  ];
+  const result = args(cliArgs);
+  t.equal(result.options.depsSourceDir, 'path/one,path/two');
+  t.end();
+});
+
+test('test command line test --deps-source-dir with single path', (t) => {
+  const cliArgs = ['node', 'cli', 'test', '--deps-source-dir=path/to/sources'];
+  const result = args(cliArgs);
+  t.equal(result.options.depsSourceDir, 'path/to/sources');
+  t.end();
+});
+
 test('test command line test --package-manager', (t) => {
   const cliArgs = [
     '/Users/dror/.nvm/versions/node/v6.9.2/bin/node',

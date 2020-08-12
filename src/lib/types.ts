@@ -167,7 +167,8 @@ export type SupportedUserReachableFacingCliArgs =
   | 'reachable-timeout'
   | 'reachable-vulns-timeout'
   | 'integration-name'
-  | 'integration-version';
+  | 'integration-version'
+  | 'deps-source-dir';
 
 export enum SupportedCliCommands {
   version = 'version',
