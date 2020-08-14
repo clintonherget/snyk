@@ -68,16 +68,14 @@ export async function find(
     } else {
       levelsDeep--;
     }
-    if (fs.existsSync(path)) {
-      const fileStats = await getStats(path);
-      if (fileStats.isDirectory()) {
-        const files = await findInDirectory(path, ignore, filter, levelsDeep);
-        found.push(...files);
-      } else if (fileStats.isFile()) {
-        const fileFound = findFile(path, filter);
-        if (fileFound) {
-          found.push(fileFound);
-        }
+    const fileStats = await getStats(path);
+    if (fileStats.isDirectory()) {
+      const files = await findInDirectory(path, ignore, filter, levelsDeep);
+      found.push(...files);
+    } else if (fileStats.isFile()) {
+      const fileFound = findFile(path, filter);
+      if (fileFound) {
+        found.push(fileFound);
       }
     }
     return filterForDefaultManifests(found);
